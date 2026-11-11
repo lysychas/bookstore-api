@@ -1,0 +1,19 @@
+{
+  "name": "bookstore-api",
+  "version": "1.0.0",
+  "description": "Lightweight JSON backend for an online bookstore",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=26"
+  },
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "express": "^5.3.0"
+  }
+}

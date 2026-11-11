@@ -1,0 +1,53 @@
+name: bookstore
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bookstore-api:latest
+    container_name: bookstore-api
+    restart: unless-stopped
+    user: "1001:1001"
+    # Publish on the host loopback interface only
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      PORT: "3000"
+      # Specific internal container IP (see networks below) - never 0.0.0.0.
+      # 127.0.0.1 would not be reachable through the published port.
+      BIND_ADDRESS: 10.89.50.10
+      DATABASE_PATH: /data/bookstore.db
+      # Required: supplied from the shell or a git-ignored .env file, never hardcoded
+      ADMIN_TOKEN: "${ADMIN_TOKEN:?ADMIN_TOKEN must be set (see .env.example)}"
+    volumes:
+      - bookstore_data:/data
+    networks:
+      bookstore_net:
+        ipv4_address: 10.89.50.10
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://10.89.50.10:3000/health',{signal:AbortSignal.timeout(4000)}).then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  bookstore_net:
+    ipam:
+      config:
+        - subnet: 10.89.50.0/24
+
+volumes:
+  bookstore_data:
